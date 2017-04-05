@@ -1,0 +1,460 @@
+\documentclass{beamer}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usetheme{Rochester}
+\usecolortheme{dolphin}
+\usepackage{listings}
+
+\title{Introduction to \texttt{dplyr} and other data manipulation techniques}
+\author{Kiva Oken}
+\date{\today}
+
+
+
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}
+  \frametitle{The \texttt{tidyverse}}
+  {\Large 
+  \begin{block}{Group of 9 packages}
+    \centering \texttt{\alert<2->{dplyr}, forcats, ggplot2, haven, purrr, readr, stringr,
+      \alert<2->{tibble}, \alert<2->{tidyr}}
+  \end{block}}
+  \pause \pause
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{install.packages}\hlstd{(}\hlstr{'tidyverse'}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  \vspace{-15pt}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{require}\hlstd{(tidyverse)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Packages for another time}
+  \begin{itemize}
+    \item \texttt{forcats}: Tools for dealing with factors
+    \item \texttt{ggplot2}: Plotting
+    \item \texttt{haven}: Read files from SAS, SPSS, Stata. NOT Matlab.
+    \item \texttt{purrr}: Functional programming
+    \item \texttt{readr}: Reading in rectangular data files
+    \item \texttt{stringr}: Tools for dealing with strings.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\texttt{dplyr}}
+  \begin{itemize}
+    \item \textbf{Split} up a dataset
+    \item \textbf{Apply} a function to each piece
+    \item \textbf{Combine} pieces back together
+  \end{itemize}
+  \bigskip \Large \centering Always returns a data frame!
+\end{frame}
+
+\begin{frame}<1>[fragile, label=verbs]
+  \frametitle{Basic \texttt{dplyr} verbs}
+  \setbeamercovered{transparent}
+  \begin{itemize}[<+->]
+    \item \textbf{Filter:} filter rows, like \verb;subset();
+    \item \textbf{Arrange:} reorder rows according to an index, like \verb;df[order(index),];
+    \item \textbf{Select:} select certain columns, like \verb;select; argument to \verb;subset(); (also \verb;$;, \verb;df[,index];)
+    \item \textbf{Mutate:} Add new columns that are a function of other columns, like \verb;transform();
+    \item \textbf{Summarize:} Collapses a data frame (or subset of a data frame) into a single row
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{filter()} and \texttt{slice()}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{olaf.assessments} \hlkwb{<-} \hlkwd{filter}\hlstd{(assessment,}
+                             \hlstd{recorder} \hlopt{==} \hlstr{'JENSEN'}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  \pause \vspace{-20pt}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{cod} \hlkwb{<-} \hlkwd{filter}\hlstd{(stock,} \hlkwd{grepl}\hlstd{(}\hlstr{'Gadus'}\hlstd{, scientificname))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  \pause \vspace{-20pt}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{slice}\hlstd{(assessment,} \hlnum{5}\hlopt{:}\hlnum{8}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\againframe<2>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{arrange()}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{arrange}\hlstd{(olaf.assessments, daterecorded)}
+\hlkwd{arrange}\hlstd{(olaf.assessments,} \hlkwd{desc}\hlstd{(daterecorded))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\againframe<3>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{select()} and \texttt{rename()}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{select}\hlstd{(olaf.assessments, stockid)}
+\hlkwd{select}\hlstd{(olaf.assessments,} \hlkwc{stock.id} \hlstd{= stockid)}
+\hlkwd{rename}\hlstd{(olaf.assessments,} \hlkwc{stock.id} \hlstd{= stockid)}
+\hlkwd{select}\hlstd{(olaf.assessments, assessid}\hlopt{:}\hlstd{stockid)}
+\hlkwd{select}\hlstd{(olaf.assessments,} \hlopt{-}\hlstd{recorder)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\againframe<4>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{mutate()} and \texttt{transmute()}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{olaf.delay} \hlkwb{<-} \hlkwd{mutate}\hlstd{(olaf.assessments,}
+                     \hlkwc{delay} \hlstd{= dateloaded} \hlopt{-}
+                       \hlstd{daterecorded)}
+\hlkwd{select}\hlstd{(olaf.delay, delay)}
+
+\hlkwd{transmute}\hlstd{(olaf.assessments,}
+                     \hlkwc{delay} \hlstd{= dateloaded} \hlopt{-}
+                       \hlstd{daterecorded)}
+
+\hlstd{toothfish.ssb} \hlkwb{<-} \hlkwd{filter}\hlstd{(timeseries, assessid} \hlopt{==}
+                          \hlstr{'CCAMLR-ATOOTHFISHRS-1995-2007-JENSEN'}\hlstd{,}
+                        \hlstd{tsid} \hlopt{==} \hlstr{'SSB-MT'}\hlstd{)}
+\hlkwd{mutate}\hlstd{(toothfish.ssb,}
+       \hlkwc{zscore} \hlstd{= (tsvalue} \hlopt{-} \hlkwd{mean}\hlstd{(tsvalue))} \hlopt{/}
+         \hlkwd{sd}\hlstd{(tsvalue))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\againframe<5>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{summarize()}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{summarize}\hlstd{(toothfish.ssb,} \hlkwd{mean}\hlstd{(tsvalue,} \hlkwc{na.rm} \hlstd{=} \hlnum{TRUE}\hlstd{))}
+\end{alltt}
+\begin{verbatim}
+##   mean(tsvalue, na.rm = TRUE)
+## 1                    67070.98
+\end{verbatim}
+\begin{alltt}
+\hlkwd{summarize}\hlstd{(toothfish.ssb,} \hlkwd{n_distinct}\hlstd{(tsvalue),} \hlkwd{n}\hlstd{())}
+\end{alltt}
+\begin{verbatim}
+##   n_distinct(tsvalue) n()
+## 1                  11  13
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{summarize()}}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{do_something} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{vec}\hlstd{) \{}
+  \hlkwd{sum}\hlstd{(vec,} \hlkwc{na.rm} \hlstd{=} \hlnum{TRUE}\hlstd{)}\hlopt{/}\hlnum{5}
+\hlstd{\}}
+\hlkwd{summarize}\hlstd{(toothfish.ssb,} \hlkwd{do_something}\hlstd{(tsvalue))}
+\hlkwd{summarise}\hlstd{(toothfish.ssb,} \hlkwd{do_something}\hlstd{(tsvalue))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Aggregating functions}
+  Accept vectors. Return scalars. (True?)
+  \begin{itemize}
+    \item Used for \verb;summarize();
+    \item Base R: \verb;min(), max(), mean(),; etc.
+    \item From dplyr: \verb;n(), n_distinct(), first(), last(), nth();
+    \item Write your own, can use C++ for speed
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{And one more: \texttt{Do()}}
+  \begin{itemize}
+    \item \textbf{Do:} general purpose verb to complement the specialized functions, like \verb;dlply();
+  \end{itemize}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlstd{assessors} \hlkwb{<-} \hlkwd{do}\hlstd{(olaf.assessments,}
+                  \hlkwc{assessor} \hlstd{=} \hlkwd{unique}\hlstd{(.}\hlopt{$}\hlstd{assessorid))}
+  \hlstd{assessors}
+  \hlstd{assessors}\hlopt{$}\hlstd{assessor}
+  \hlkwd{class}\hlstd{(assessors)}
+
+  \hlkwd{distinct}\hlstd{(olaf.assessments, assessorid)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Practice}
+  \begin{enumerate}
+    \item Create a data frame in R that contains the time series data of Atlantic Amberjack using \verb;filter();. \textbf{Hint:} this stock is in \verb;olaf.assessments;.
+    \item Using \texttt{filter()} and one other \texttt{dplyr} function, determine in which year Amberjack had the highest recruitment (R-E00).
+  \end{enumerate}
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+  \frametitle{Pipes! (\texttt{\%>\%})}
+  \begin{center}
+  \verb;f(x) %>% g(y); 
+  $\Leftrightarrow$ 
+  \verb;g(f(x), y);
+  \end{center}
+  \bigskip \pause
+  Three ways to get the same result: \pause
+  \begin{enumerate}[<+->]
+    \item
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{x} \hlkwb{<-} \hlkwd{rnorm}\hlstd{(}\hlnum{100}\hlstd{)}
+\hlstd{x.mat} \hlkwb{<-} \hlkwd{matrix}\hlstd{(x,} \hlkwc{nrow} \hlstd{=} \hlnum{10}\hlstd{)}
+\hlstd{x.mns} \hlkwb{<-} \hlkwd{apply}\hlstd{(x.mat,} \hlnum{1}\hlstd{, mean)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+    \item
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{x.mns} \hlkwb{<-} \hlkwd{apply}\hlstd{(}\hlkwd{matrix}\hlstd{(}\hlkwd{rnorm}\hlstd{(}\hlnum{100}\hlstd{),} \hlkwc{nrow} \hlstd{=} \hlnum{10}\hlstd{),}
+               \hlnum{1}\hlstd{, mean)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+    \item
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{x.mns} \hlkwb{<-} \hlkwd{rnorm}\hlstd{(}\hlnum{100}\hlstd{)} \hlopt{%>%}
+  \hlkwd{matrix}\hlstd{(}\hlkwc{nrow} \hlstd{=} \hlnum{10}\hlstd{)} \hlopt{%>%}
+  \hlkwd{apply}\hlstd{(}\hlnum{1}\hlstd{, mean)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{group\_by()}}
+  The workhorse of \texttt{dplyr}, like \verb;tapply(), ddply();
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{toothfish} \hlkwb{<-} \hlkwd{filter}\hlstd{(timeseries, assessid} \hlopt{==}
+    \hlstr{'CCAMLR-ATOOTHFISHRS-1995-2007-JENSEN'}\hlstd{)} \hlopt{%>%}
+  \hlkwd{select}\hlstd{(tsid}\hlopt{:}\hlstd{tsvalue)} \hlopt{%>%}
+  \hlkwd{group_by}\hlstd{(tsid)}
+
+\hlkwd{summarize}\hlstd{(toothfish,} \hlkwc{mn} \hlstd{=} \hlkwd{mean}\hlstd{(tsvalue,} \hlkwc{na.rm} \hlstd{=} \hlnum{TRUE}\hlstd{),}
+          \hlkwc{stdev} \hlstd{=} \hlkwd{sd}\hlstd{(tsvalue,} \hlkwc{na.rm} \hlstd{=} \hlnum{TRUE}\hlstd{))}
+\hlkwd{slice}\hlstd{(toothfish,} \hlnum{1}\hlstd{)}
+\hlkwd{mutate}\hlstd{(toothfish,} \hlkwc{z.score} \hlstd{=}
+         \hlstd{(tsvalue} \hlopt{-} \hlkwd{mean}\hlstd{(tsvalue,} \hlkwc{na.rm}\hlstd{=}\hlnum{TRUE}\hlstd{))} \hlopt{/}
+         \hlkwd{sd}\hlstd{(tsvalue,} \hlkwc{na.rm}\hlstd{=}\hlnum{TRUE}\hlstd{))} \hlopt{%>%}
+  \hlkwd{View}\hlstd{()}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Join}
+  Join multiple data frames together based on a common variable (e.g., species)\\
+  \pause
+  \begin{itemize}
+    \item \textbf{Inner join:} rows with matching values in both data frames, columns from both data frames
+    \item \textbf{Left join:} all rows from first (left) data frame, columns from both data frames
+    \item \textbf{Semi join:} rows with matching values in both data frames, columns from first data frame
+    \item \textbf{Anti join:} rows from first data frame with\textit{out} matching values in second, columns from first data frame
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Join example}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{select}\hlstd{(stock, stockid, scientificname, commonname)} \hlopt{%>%}
+  \hlkwd{inner_join}\hlstd{(assessment)} \hlopt{%>%}
+  \hlkwd{View}\hlstd{()}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Joining, by = "{}stockid"{}}}\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Tidy data}
+  \begin{columns}[t]
+  \column{.5\framewidth}
+    \centering \textbf{Untidy data (wide)}\\
+    \bigskip
+    $\begin{array}{c|c}
+      \text{Control} & \text{Treatment} \\
+      \hline
+        c_1 & t_1 \\
+        \vdots & \vdots \\
+        c_n & t_n
+    \end{array}$
+  \column{.5\framewidth}
+    \centering \textbf{Tidy data (long)}\\
+    \bigskip
+    $\begin{array}{c|c}
+      \text{Condition} & \text{Value} \\
+      \hline
+      \text{Control} & c_1 \\
+      \vdots & \vdots \\
+      \text{Control} & c_n \\
+      \text{Treatment} & t_1 \\
+      \vdots & \vdots \\
+      \text{Treatment} & t_n
+    \end{array}$
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The \texttt{tidyr} package}
+  Update of \texttt{reshape2}
+  \begin{itemize}
+    \item \texttt{gather()}: Wide to long data frame
+    \item \texttt{spread()}: Long to wide data frame
+  \end{itemize}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{wide.toothfish} \hlkwb{<-} \hlkwd{ungroup}\hlstd{(toothfish)} \hlopt{%>%}
+  \hlkwd{mutate}\hlstd{(}\hlkwc{tsid} \hlstd{=} \hlkwd{gsub}\hlstd{(}\hlstr{'-'}\hlstd{,} \hlstr{'_'}\hlstd{, tsid))} \hlopt{%>%}
+  \hlkwd{spread}\hlstd{(}\hlkwc{key} \hlstd{=} \hlstr{'tsid'}\hlstd{,} \hlkwc{value} \hlstd{=} \hlstr{'tsvalue'}\hlstd{)}
+\hlstd{long.toothfish} \hlkwb{<-} \hlkwd{gather}\hlstd{(wide.toothfish,}
+                         \hlkwc{key} \hlstd{= tsid,} \hlkwc{value} \hlstd{= tsvalue,}
+                         \hlstd{BdivBmgttouse_dimensionless}\hlopt{:}
+                           \hlstd{Utouse_index)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+ 
+\begin{frame}
+  \frametitle{Practice II}
+  \begin{enumerate}
+    \item Create a data frame in R of data for Pacific herring (\textit{Clupea pallasii}) that is grouped by stock and population metric (SSB, recruitment, etc.). You will need to join information from all three of the data tables in the RAM database to do this.
+    \item Using your data frame, calculate the mean and standard deviation of each population metric (SSB, recruitment, etc.) for each area. Note that the database contains NAs.
+    \item Plot the time series of spawning stock biomass of Pacific herring to compare across regions using either \texttt{do()} with base graphics or \texttt{ggplot()}.
+    \item Bonus: Color the lines produces above by exploitation rate (ER-ratio). You will probably need to use \texttt{tidyr}.
+  \end{enumerate}
+\end{frame}
+
+
+
+\begin{frame}
+  \frametitle{The end}
+  Further resources:
+    \begin{itemize}
+      \item Package vignettes for \texttt{dplyr}, \texttt{tidyr}
+      \item www.tidyverse.org
+      \item Trevor Branch Super Advanced R course webpage
+      \item Google, Stack Exchange, etc.
+    \end{itemize}
+\end{frame}
+
+
+
+\end{document}
