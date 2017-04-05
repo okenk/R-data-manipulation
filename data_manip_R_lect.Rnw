@@ -1,0 +1,413 @@
+\documentclass{beamer}
+\usetheme{Rochester}
+\usecolortheme{dolphin}
+\usepackage{listings}
+
+\title{Introduction to \texttt{dplyr} and other data manipulation techniques}
+\author{Kiva Oken}
+\date{\today}
+
+<<packages, echo=FALSE, results='hide'>>=
+## Introduction to dplyr and other data manipulation techniques
+## Kiva Oken
+options(width = 48)
+load('ram-legacy.RData')
+@
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}
+  \frametitle{The \texttt{tidyverse}}
+  {\Large 
+  \begin{block}{Group of 9 packages}
+    \centering \texttt{\alert<2->{dplyr}, forcats, ggplot2, haven, purrr, readr, stringr,
+      \alert<2->{tibble}, \alert<2->{tidyr}}
+  \end{block}}
+  \pause \pause
+<<install, eval=FALSE>>=
+install.packages('tidyverse')
+@
+  \vspace{-15pt}
+<<load, message=FALSE, warning=FALSE>>=
+require(tidyverse)
+@
+\end{frame}
+
+\begin{frame}
+  \frametitle{Packages for another time}
+  \begin{itemize}
+    \item \texttt{forcats}: Tools for dealing with factors
+    \item \texttt{ggplot2}: Plotting
+    \item \texttt{haven}: Read files from SAS, SPSS, Stata. NOT Matlab.
+    \item \texttt{purrr}: Functional programming
+    \item \texttt{readr}: Reading in rectangular data files
+    \item \texttt{stringr}: Tools for dealing with strings.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\texttt{dplyr}}
+  \begin{itemize}
+    \item \textbf{Split} up a dataset
+    \item \textbf{Apply} a function to each piece
+    \item \textbf{Combine} pieces back together
+  \end{itemize}
+  \bigskip \Large \centering Always returns a data frame!
+\end{frame}
+
+\begin{frame}<1>[fragile, label=verbs]
+  \frametitle{Basic \texttt{dplyr} verbs}
+  \setbeamercovered{transparent}
+  \begin{itemize}[<+->]
+    \item \textbf{Filter:} filter rows, like \verb;subset();
+    \item \textbf{Arrange:} reorder rows according to an index, like \verb;df[order(index),];
+    \item \textbf{Select:} select certain columns, like \verb;select; argument to \verb;subset(); (also \verb;$;, \verb;df[,index];)
+    \item \textbf{Mutate:} Add new columns that are a function of other columns, like \verb;transform();
+    \item \textbf{Summarize:} Collapses a data frame (or subset of a data frame) into a single row
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{filter()} and \texttt{slice()}}
+<<filter>>=
+olaf.assessments <- filter(assessment, 
+                             recorder == 'JENSEN')
+@
+  \pause \vspace{-20pt}
+<<filter2>>=
+cod <- filter(stock, grepl('Gadus', scientificname))
+@
+  \pause \vspace{-20pt}
+<<filter3, results='hide'>>=
+slice(assessment, 5:8)
+@
+\end{frame}
+
+\againframe<2>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{arrange()}}
+  <<arrange, results='hide', tidy=FALSE>>=
+  arrange(olaf.assessments, daterecorded)
+  arrange(olaf.assessments, desc(daterecorded))
+  @
+\end{frame}
+
+\againframe<3>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{select()} and \texttt{rename()}}
+  <<select, results='hide', tidy=FALSE>>=
+  select(olaf.assessments, stockid)
+  select(olaf.assessments, stock.id = stockid)
+  rename(olaf.assessments, stock.id = stockid)
+  select(olaf.assessments, assessid:stockid)
+  select(olaf.assessments, -recorder)
+  @
+\end{frame}
+
+\againframe<4>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{mutate()} and \texttt{transmute()}}
+  <<mutate, results='hide', tidy=FALSE>>=
+  olaf.delay <- mutate(olaf.assessments, 
+                       delay = dateloaded - 
+                         daterecorded)
+  select(olaf.delay, delay)
+  
+  transmute(olaf.assessments, 
+                       delay = dateloaded - 
+                         daterecorded)
+
+  toothfish.ssb <- filter(timeseries, assessid ==
+                            'CCAMLR-ATOOTHFISHRS-1995-2007-JENSEN',
+                          tsid == 'SSB-MT')
+  mutate(toothfish.ssb, 
+         zscore = (tsvalue - mean(tsvalue)) / 
+           sd(tsvalue))
+  
+  @
+\end{frame}
+
+\againframe<5>{verbs}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{summarize()}}
+  <<summarize, tidy=FALSE>>=
+  summarize(toothfish.ssb, mean(tsvalue, na.rm = TRUE))
+  summarize(toothfish.ssb, n_distinct(tsvalue), n())
+  @
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{summarize()}}
+  <<summarize2, tidy=FALSE, results='hide'>>=
+  do_something <- function(vec) {
+    sum(vec, na.rm = TRUE)/5
+  }
+  summarize(toothfish.ssb, do_something(tsvalue))
+  summarise(toothfish.ssb, do_something(tsvalue))
+  @
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Aggregating functions}
+  Accept vectors. Return scalars. (True?)
+  \begin{itemize}
+    \item Used for \verb;summarize();
+    \item Base R: \verb;min(), max(), mean(),; etc.
+    \item From dplyr: \verb;n(), n_distinct(), first(), last(), nth();
+    \item Write your own, can use C++ for speed
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{And one more: \texttt{Do()}}
+  \begin{itemize}
+    \item \textbf{Do:} general purpose verb to complement the specialized functions, like \verb;dlply();
+  \end{itemize}
+<<do, results='hide', tidy=FALSE>>=
+  assessors <- do(olaf.assessments, 
+                  assessor = unique(.$assessorid))
+  assessors
+  assessors$assessor
+  class(assessors)
+  
+  distinct(olaf.assessments, assessorid)
+@
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Practice}
+  \begin{enumerate}
+    \item Create a data frame in R that contains the time series data of Atlantic Amberjack using \verb;filter();. \textbf{Hint:} this stock is in \verb;olaf.assessments;.
+    \item Using \texttt{filter()} and one other \texttt{dplyr} function, determine in which year Amberjack had the highest recruitment (R-E00).
+  \end{enumerate}
+\end{frame}
+
+<<exercise_pt1, echo=FALSE, eval=FALSE>>=
+1. Create a data frame in R that contains the time series data of Atlantic Amberjack
+using filter(). Hint: this stock is in olaf.assessments.
+
+2. Using filter() and one other dplyr function, determine in which year Amberjack had
+the highest recruitment (R-E00).
+@
+
+\begin{frame}[fragile]
+  \frametitle{Pipes! (\texttt{\%>\%})}
+  \begin{center}
+  \verb;f(x) %>% g(y); 
+  $\Leftrightarrow$ 
+  \verb;g(f(x), y);
+  \end{center}
+  \bigskip \pause
+  Three ways to get the same result: \pause
+  \begin{enumerate}[<+->]
+    \item
+<<pipe1>>=
+x <- rnorm(100)
+x.mat <- matrix(x, nrow = 10)
+x.mns <- apply(x.mat, 1, mean)
+@
+    \item
+<<pipe2>>=
+x.mns <- apply(matrix(rnorm(100), nrow = 10),
+               1, mean)
+@
+    \item
+<<pipe3>>=
+x.mns <- rnorm(100) %>%
+  matrix(nrow = 10) %>%
+  apply(1, mean)
+@
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\texttt{group\_by()}}
+  The workhorse of \texttt{dplyr}, like \verb;tapply(), ddply();
+  <<groupby, tidy=FALSE, results='hide'>>=
+  toothfish <- filter(timeseries, assessid ==
+      'CCAMLR-ATOOTHFISHRS-1995-2007-JENSEN') %>%
+    select(tsid:tsvalue) %>%
+    group_by(tsid)
+
+  summarize(toothfish, mn = mean(tsvalue, na.rm = TRUE),
+            stdev = sd(tsvalue, na.rm = TRUE))
+  slice(toothfish, 1) 
+  mutate(toothfish, z.score = 
+           (tsvalue - mean(tsvalue, na.rm=TRUE)) / 
+           sd(tsvalue, na.rm=TRUE)) %>%
+    View()
+  @
+\end{frame}
+
+\begin{frame}
+  \frametitle{Join}
+  Join multiple data frames together based on a common variable (e.g., species)\\
+  \pause
+  \begin{itemize}
+    \item \textbf{Inner join:} rows with matching values in both data frames, columns from both data frames
+    \item \textbf{Left join:} all rows from first (left) data frame, columns from both data frames
+    \item \textbf{Semi join:} rows with matching values in both data frames, columns from first data frame
+    \item \textbf{Anti join:} rows from first data frame with\textit{out} matching values in second, columns from first data frame
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Join example}
+  <<join, tidy=FALSE>>=
+  select(stock, stockid, scientificname, commonname) %>%
+    inner_join(assessment) %>%
+    View()
+  @
+\end{frame}
+
+\begin{frame}
+  \frametitle{Tidy data}
+  \begin{columns}[t]
+  \column{.5\framewidth}
+    \centering \textbf{Untidy data (wide)}\\
+    \bigskip
+    $\begin{array}{c|c}
+      \text{Control} & \text{Treatment} \\
+      \hline
+        c_1 & t_1 \\
+        \vdots & \vdots \\
+        c_n & t_n
+    \end{array}$
+  \column{.5\framewidth}
+    \centering \textbf{Tidy data (long)}\\
+    \bigskip
+    $\begin{array}{c|c}
+      \text{Condition} & \text{Value} \\
+      \hline
+      \text{Control} & c_1 \\
+      \vdots & \vdots \\
+      \text{Control} & c_n \\
+      \text{Treatment} & t_1 \\
+      \vdots & \vdots \\
+      \text{Treatment} & t_n
+    \end{array}$
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The \texttt{tidyr} package}
+  Update of \texttt{reshape2}
+  \begin{itemize}
+    \item \texttt{gather()}: Wide to long data frame
+    \item \texttt{spread()}: Long to wide data frame
+  \end{itemize}
+  <<tidyr, tidy=FALSE>>=
+  wide.toothfish <- ungroup(toothfish) %>%
+    mutate(tsid = gsub('-', '_', tsid)) %>%
+    spread(key = 'tsid', value = 'tsvalue')
+  long.toothfish <- gather(wide.toothfish,
+                           key = tsid, value = tsvalue, 
+                           BdivBmgttouse_dimensionless:
+                             Utouse_index)
+  @
+\end{frame}
+ 
+\begin{frame}
+  \frametitle{Practice II}
+  \begin{enumerate}
+    \item Create a data frame in R of data for Pacific herring (\textit{Clupea pallasii}) that is grouped by stock and population metric (SSB, recruitment, etc.). You will need to join information from all three of the data tables in the RAM database to do this.
+    \item Using your data frame, calculate the mean and standard deviation of each population metric (SSB, recruitment, etc.) for each area. Note that the database contains NAs.
+    \item Plot the time series of spawning stock biomass of Pacific herring to compare across regions using either \texttt{do()} with base graphics or \texttt{ggplot()}.
+    \item Bonus: Color the lines produces above by exploitation rate (ER-ratio). You will probably need to use \texttt{tidyr}.
+  \end{enumerate}
+\end{frame}
+
+<<exercise_pt2, echo=FALSE, eval=FALSE>>=
+1. Create a data frame in R of data for Pacific herring (Clupea pallasii) that is
+grouped by area and population metric (SSB, recruitment, etc.). You will need to
+join information from all four of the data tables in the RAM database to do this.
+
+2. Using your data frame, calculate the mean and standard deviation of each
+population metric (SSB, recruitment, etc.) for each area. Note that the database
+contains NAs.
+
+3. Plot the time series of spawning stock biomass of Pacific herring to compare
+across regions using either do() with base graphics or ggplot().
+
+4. Bonus: Color the lines produces above by exploitation rate (ER-ratio). You will
+probably need to use tidyr.
+@
+
+\begin{frame}
+  \frametitle{The end}
+  Further resources:
+    \begin{itemize}
+      \item Package vignettes for \texttt{dplyr}, \texttt{tidyr}
+      \item www.tidyverse.org
+      \item Trevor Branch Super Advanced R course webpage
+      \item Google, Stack Exchange, etc.
+    \end{itemize}
+\end{frame}
+
+<<solutions, echo=FALSE, results='hide', fig.show='hide', error=FALSE, message=FALSE>>=
+## Solutions
+## Part 1
+## 1
+aj.assess <- filter(olaf.assessments, grepl('amberjack', stocklong, ignore.case = TRUE))
+aj.assess
+amberjack <- filter(timeseries, stockid == aj.assess$stockid[2])
+
+## 2
+aj.recruit <- filter(amberjack, tsid == 'R-E00')
+summarize(aj.recruit, tsyear[which.max(tsvalue)])
+arrange(aj.recruit, desc(tsvalue))
+filter(aj.recruit, rank(-tsvalue) == 1)
+
+## 3
+ggplot(data = filter(amberjack, tsid == 'SSB-MT', tsyear >= 1965, tsyear <= 2005),
+       aes(x = tsyear, y = tsvalue)) + 
+  geom_line() + geom_point(size = 2) +
+  xlab('Year') + ylab('SSB (mt)')
+plot(tsvalue ~ tsyear, type = 'l', xlab = 'Year', ylab = 'SSB (mt)', las = 1,
+     data = filter(amberjack, tsid == 'SSB-MT', tsyear >= 1965, tsyear <= 2005))
+
+
+## Part 2
+## 1
+pac.herring <- filter(stock, scientificname=='Clupea pallasii') %>%
+  inner_join(assessment) %>% 
+  inner_join(timeseries) %>%
+  select(stocklong, tsid, tsyear, tsvalue) %>% 
+  group_by(stocklong, tsid)
+
+## 2
+summarize(pac.herring, mn = mean(tsvalue, na.rm=TRUE), 
+          stdev = sd(tsvalue, na.rm=TRUE)) %>%
+  View()
+
+## 3
+filter(pac.herring, tsid == 'SSB-MT') %>%
+  ggplot() + aes(x=tsyear, y=tsvalue) + geom_line() + 
+  facet_wrap(~ gsub('Pacific herring', '', stocklong)) +
+  xlab('Year') + ylab('SSB (mt)')
+
+par(mfrow = c(3,3), mar = c(2,2,2,2)) 
+filter(pac.herring, tsid == 'SSB-MT') %>%
+  do(temp = plot(.$tsyear, .$tsvalue, type = 'l', 
+                 xlab = '', ylab = '', 
+                 main = gsub('Pacific herring', '', 
+                             .$stocklong[1])))
+
+## Bonus
+ungroup(pac.herring) %>%
+  mutate(tsid = gsub('-', '_', tsid)) %>%
+  spread(key = tsid, value = tsvalue) %>%
+  filter(!is.na(SSB_MT)) %>%
+  ggplot() + aes(x = tsyear, y = SSB_MT) + 
+  geom_point(aes(col=ER_ratio)) +
+  geom_line() + xlab('Year') + ylab('SSB (mt)') +
+  facet_wrap(~ gsub('Pacific herring', '', stocklong))
+@
+
+\end{document}
