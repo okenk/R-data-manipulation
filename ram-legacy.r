@@ -13,4 +13,13 @@ timeseries <- read.csv('timeseries.csv', stringsAsFactors = FALSE)
 save(assessment, stock, timeseries, file = 'ram-legacy.RData')
 
 require(knitr)
+drop.lines <- function(scriptname, what.to.drop){
+  script <- readLines(scriptname)
+  is.heading <- grepl('## --', script)
+  script.reduced <- script[!is.heading]
+  writeLines(text = script.reduced, con= scriptname)
+}
+
 purl('data_manip_R_lect.Rnw')
+drop.lines('data_manip_R_lect.R', '## --')
+
