@@ -350,7 +350,7 @@ probably need to use tidyr.
     \end{itemize}
 \end{frame}
 
-<<solutions, echo=FALSE, results='hide', fig.show='hide', error=FALSE, message=FALSE>>=
+<<solutions, echo=FALSE, error=FALSE, message=FALSE, include=FALSE, fig.keep='none'>>=
 ## Solutions
 ## Part 1
 ## 1
