@@ -74,6 +74,16 @@ x.mns <- rnorm(100) %>%
   matrix(nrow = 10) %>%
   apply(1, mean)
 
+filter(timeseries,
+       stockid == 'GRAMBERSATLC',
+       tsid == 'SSB-MT') %>%
+  with(plot(tsyear, tsvalue, type = 'l',
+            xlab = 'Year', ylab = 'SSB (mt)',
+            main = stocklong[1]))
+
+lm(tsvalue ~ tsyear, data = toothfish.ssb) %>%
+  with(plot(fitted.values, residuals))
+
 toothfish <- filter(timeseries, assessid ==
     'CCAMLR-ATOOTHFISHRS-1995-2007-JENSEN') %>%
   select(tsid:tsvalue) %>%
@@ -110,6 +120,6 @@ long.toothfish <- gather(wide.toothfish,
 ## 3. Plot the time series of spawning stock biomass of Pacific herring to compare
 ## across regions using either do() with base graphics or ggplot().
 ## 
-## 4. Bonus: Color the lines produces above by exploitation rate (ER-ratio). You will
-## probably need to use tidyr.
+## 4. Bonus: Color the lines produced above by exploitation rate (ER-ratio). You
+## may want to use tidyr.
 

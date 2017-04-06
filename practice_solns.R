@@ -1,4 +1,3 @@
-## Solutions
 ## Part 1
 ## 1
 aj.assess <- filter(olaf.assessments, grepl('amberjack', stocklong, ignore.case = TRUE))

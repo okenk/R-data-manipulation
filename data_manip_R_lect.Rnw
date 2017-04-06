@@ -227,6 +227,21 @@ x.mns <- rnorm(100) %>%
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{Pipes, continued}
+<<pipe4, results='hide', fig.keep='none'>>=
+filter(timeseries,
+       stockid == 'GRAMBERSATLC',
+       tsid == 'SSB-MT') %>%
+  with(plot(tsyear, tsvalue, type = 'l',
+            xlab = 'Year', ylab = 'SSB (mt)',
+            main = stocklong[1]))
+
+lm(tsvalue ~ tsyear, data = toothfish.ssb) %>%
+  with(plot(fitted.values, residuals))
+@
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{\texttt{group\_by()}}
   The workhorse of \texttt{dplyr}, like \verb;tapply(), ddply();
   <<groupby, tidy=FALSE, results='hide'>>=
@@ -319,7 +334,7 @@ x.mns <- rnorm(100) %>%
     \item Create a data frame in R of data for Pacific herring (\textit{Clupea pallasii}) that is grouped by stock and population metric (SSB, recruitment, etc.). You will need to join information from all three of the data tables in the RAM database to do this.
     \item Using your data frame, calculate the mean and standard deviation of each population metric (SSB, recruitment, etc.) for each area. Note that the database contains NAs.
     \item Plot the time series of spawning stock biomass of Pacific herring to compare across regions using either \texttt{do()} with base graphics or \texttt{ggplot()}.
-    \item Bonus: Color the lines produces above by exploitation rate (ER-ratio). You will probably need to use \texttt{tidyr}.
+    \item Bonus: Color the lines produced above by exploitation rate (ER-ratio). You may want to use \texttt{tidyr}.
   \end{enumerate}
 \end{frame}
 
@@ -335,8 +350,8 @@ contains NAs.
 3. Plot the time series of spawning stock biomass of Pacific herring to compare
 across regions using either do() with base graphics or ggplot().
 
-4. Bonus: Color the lines produces above by exploitation rate (ER-ratio). You will
-probably need to use tidyr.
+4. Bonus: Color the lines produced above by exploitation rate (ER-ratio). You 
+may want to use tidyr.
 @
 
 \begin{frame}

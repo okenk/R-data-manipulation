@@ -332,6 +332,25 @@
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{Pipes, continued}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{filter}\hlstd{(timeseries,}
+       \hlstd{stockid} \hlopt{==} \hlstr{'GRAMBERSATLC'}\hlstd{,}
+       \hlstd{tsid} \hlopt{==} \hlstr{'SSB-MT'}\hlstd{)} \hlopt{%>%}
+  \hlkwd{with}\hlstd{(}\hlkwd{plot}\hlstd{(tsyear, tsvalue,} \hlkwc{type} \hlstd{=} \hlstr{'l'}\hlstd{,}
+            \hlkwc{xlab} \hlstd{=} \hlstr{'Year'}\hlstd{,} \hlkwc{ylab} \hlstd{=} \hlstr{'SSB (mt)'}\hlstd{,}
+            \hlkwc{main} \hlstd{= stocklong[}\hlnum{1}\hlstd{]))}
+
+\hlkwd{lm}\hlstd{(tsvalue} \hlopt{~} \hlstd{tsyear,} \hlkwc{data} \hlstd{= toothfish.ssb)} \hlopt{%>%}
+  \hlkwd{with}\hlstd{(}\hlkwd{plot}\hlstd{(fitted.values, residuals))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{\texttt{group\_by()}}
   The workhorse of \texttt{dplyr}, like \verb;tapply(), ddply();
 \begin{knitrout}
@@ -438,7 +457,7 @@
     \item Create a data frame in R of data for Pacific herring (\textit{Clupea pallasii}) that is grouped by stock and population metric (SSB, recruitment, etc.). You will need to join information from all three of the data tables in the RAM database to do this.
     \item Using your data frame, calculate the mean and standard deviation of each population metric (SSB, recruitment, etc.) for each area. Note that the database contains NAs.
     \item Plot the time series of spawning stock biomass of Pacific herring to compare across regions using either \texttt{do()} with base graphics or \texttt{ggplot()}.
-    \item Bonus: Color the lines produces above by exploitation rate (ER-ratio). You will probably need to use \texttt{tidyr}.
+    \item Bonus: Color the lines produced above by exploitation rate (ER-ratio). You may want to use \texttt{tidyr}.
   \end{enumerate}
 \end{frame}
 
